@@ -1,4 +1,4 @@
-#coding=utf-8
+# -*- coding:utf-8 -*-
 from django.utils import timezone
 from announcement.models import Announcement, image_path
 import os
