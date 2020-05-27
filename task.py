@@ -3,6 +3,11 @@ from django.utils import timezone
 from announcement.models import Announcement, image_path
 import os
 from teamwork import settings
+import django
+
+
+os.environ.setdefault("DJANGO_SETTINGS_MODULE", "teamwork.settings")
+django.setup()
 
 
 def clean_expired_data():
