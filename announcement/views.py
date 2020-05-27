@@ -119,7 +119,6 @@ def read_confirm(request, id, require_upload):
 
 
 @csrf_exempt
-@check_authority
 def show_upload(request, id, names):
     if request.method == "POST":
         values = AnnouncementRecord.objects.filter(aid=id)

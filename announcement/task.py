@@ -1,8 +1,7 @@
 from django.utils import timezone
-from announcement.models import Announcement
+from .models import Announcement, image_path
 import os
 from teamwork import settings
-from announcement.models import image_path
 
 
 def clean_expired_data():
@@ -15,3 +14,7 @@ def clean_expired_data():
         for file in os.listdir(dir):
             if file.startswith(tuple(data_id)):
                 os.remove(os.path.join(dir, file))
+
+
+if __name__ == "__main__":
+    clean_expired_data()
