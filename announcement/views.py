@@ -59,25 +59,27 @@ def make_announcement(request, id):
             to_people_extend += group_mamber
     if len(to_people_extend) != 0:
         to_people_extend = list(set(to_people_extend))
-    read_names = AnnouncementRecord.objects.filter(aid=id)
-    read_names = list(read_names.values_list("reader", flat=True))
+    read_names_extend = AnnouncementRecord.objects.filter(aid=id)
+    read_names_extend = list(read_names_extend.values_list("reader", flat=True))
     if current_username not in to_people_extend:
         is_read = True
     else:
-        is_read = True if current_username in read_names else False
-    if len(read_names) != 0:
+        is_read = True if current_username in read_names_extend else False
+    if len(read_names_extend) != 0:
         if len(group_dict) != 0:
             for name, member in group_dict.items():
-                group_dict[name].append([i for i in read_names if i in member[0]])
+                group_dict[name].append([i for i in read_names_extend if i in member[0]])
                 group_dict[name].append([i for i in member[0] if i not in member[1]])
-        unread_names = [name for name in to_people if name not in read_names]
+        read_names = [name for name in to_people if name in read_names_extend]
+        unread_names = [name for name in to_people if name not in read_names_extend]
     else:
         if len(group_dict) != 0:
             for name, member in group_dict.items():
                 group_dict[name].append([])
                 group_dict[name].append(member[0])
+        read_names = []
         unread_names = to_people
-    to_people_length = (len(read_names) + len(unread_names))
+    to_people_length = (len(to_people))
     values = {'id': id, 'announcement': announcement, 'group_dict': group_dict, 'read_names': read_names,
               'unread_names': unread_names, 'is_read': is_read, 'to_people_length': to_people_length}
     return render(request, 'announcement.html', values)
