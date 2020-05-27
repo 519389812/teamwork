@@ -8,7 +8,7 @@ from PIL import Image
 from announcement.models import image_path
 from teamwork import settings
 from teamwork.settings import MEDIA_URL
-from apscheduler.schedulers.background import BackgroundScheduler
+# from apscheduler.schedulers.background import BackgroundScheduler
 from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 from django.utils import timezone
 
@@ -125,25 +125,25 @@ def show_upload(request, id, names):
         return render(request, "show-upload.html", values)
 
 
-scheduler = BackgroundScheduler()
-scheduler.add_jobstore(DjangoJobStore(), "default")
-
-
-@register_job(scheduler, "interval", hours=1, id="clean_expired_data")
-def clean_expired_data():
-    data = Announcement.objects.filter(deadline__lte=timezone.now(), active=True)
-    if len(data) > 0:
-        data_id = list(set(data.values_list("id", flat=True)))
-        data.update(content="已过期", active=False)
-        data_id = [str(i) for i in data_id]
-        dir = os.path.join(settings.MEDIA_ROOT, image_path)
-        for file in os.listdir(dir):
-            if file.startswith(tuple(data_id)):
-                os.remove(os.path.join(dir, file))
-
-
-register_events(scheduler)
-scheduler.start()
+# scheduler = BackgroundScheduler()
+# scheduler.add_jobstore(DjangoJobStore(), "default")
+#
+#
+# @register_job(scheduler, "interval", hours=1, id="clean_expired_data")
+# def clean_expired_data():
+#     data = Announcement.objects.filter(deadline__lte=timezone.now(), active=True)
+#     if len(data) > 0:
+#         data_id = list(set(data.values_list("id", flat=True)))
+#         data.update(content="已过期", active=False)
+#         data_id = [str(i) for i in data_id]
+#         dir = os.path.join(settings.MEDIA_ROOT, image_path)
+#         for file in os.listdir(dir):
+#             if file.startswith(tuple(data_id)):
+#                 os.remove(os.path.join(dir, file))
+#
+#
+# register_events(scheduler)
+# scheduler.start()
 
 
 # $(document).ready(function(){
