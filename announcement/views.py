@@ -44,7 +44,10 @@ def login(request):
 
 @check_authority
 def make_announcement(request, id):
-    current_username = request.user.full_name
+    try:
+        current_username = request.user.full_name
+    except:
+        current_username = User.objects.get(username=request.session["login_user"]).full_name
     announcement = Announcement.objects.get(id=id)
     to_group_obj = announcement.to_group.all()
     to_people_obj = announcement.to_people.all()
