@@ -1,4 +1,3 @@
-# -*- coding:utf-8 -*-
 from django.db import models
 from team.models import Team
 from user.models import User
