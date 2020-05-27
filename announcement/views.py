@@ -118,8 +118,8 @@ def read_confirm(request, id, require_upload):
             return redirect(request.META['HTTP_REFERER'])
 
 
-@check_authority
 @csrf_exempt
+@check_authority
 def show_upload(request, id, names):
     if request.method == "POST":
         values = AnnouncementRecord.objects.filter(aid=id)
