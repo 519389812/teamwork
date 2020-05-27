@@ -8,7 +8,6 @@ from PIL import Image
 from announcement.models import image_path
 from teamwork import settings
 from teamwork.settings import MEDIA_URL
-# from apscheduler.schedulers.background import BackgroundScheduler
 # from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
 # from django.utils import timezone
 from django.views.decorators.csrf import csrf_exempt
