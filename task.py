@@ -1,6 +1,10 @@
 import django
 import os
-os.environ.setdefault('DJANGO_SETTING_MODULE', 'teamwork.settings')
+import sys
+path = '/home/teamwork/teamwork'
+if path not in sys.path:
+    sys.path.append(path)
+os.environ['DJANGO_SETTINGS_MODULE'] = 'teamwork.settings'
 django.setup()
 from django.utils import timezone
 from announcement.models import Announcement, image_path
