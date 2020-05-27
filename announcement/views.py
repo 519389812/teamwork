@@ -9,8 +9,9 @@ from announcement.models import image_path
 from teamwork import settings
 from teamwork.settings import MEDIA_URL
 # from apscheduler.schedulers.background import BackgroundScheduler
-from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
-from django.utils import timezone
+# from django_apscheduler.jobstores import DjangoJobStore, register_events, register_job
+# from django.utils import timezone
+from django.views.decorators.csrf import csrf_exempt
 
 
 def check_authority(func):
@@ -116,6 +117,7 @@ def read_confirm(request, id, require_upload):
 
 
 @check_authority
+@csrf_exempt
 def show_upload(request, id, names):
     if request.method == "POST":
         values = AnnouncementRecord.objects.filter(aid=id)
