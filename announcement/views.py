@@ -104,30 +104,44 @@ def read_confirm(request, id, require_upload):
             if img is not None:
                 img_name = img.name.lower()
                 if img_name.endswith("jpg") or img_name.endswith("jpeg") or img_name.endswith("png"):
-                    img_type = img_name.split(".")[-1]
-                    img = Image.open(img)
-                    img = img.resize((281, 500))
-                    img.save(os.path.join(settings.MEDIA_ROOT, image_path, (id + '_' + user + '.' + img_type)))
+                    try:
+                        img_type = img_name.split(".")[-1]
+                        img = Image.open(img)
+                        img = img.resize((200, 357))
+                        img.save(os.path.join(settings.MEDIA_ROOT, image_path, (id + '_' + user + '.' + img_type)))
+                    except:
+                        return HttpResponse("图片格式错误，请尝试重新上传或更换图片！")
                     AnnouncementRecord.objects.create(aid=id, reader=user, image=os.path.join(image_path, (
                                 id + '_' + user + '.' + img_type)))
                     return redirect(request.META['HTTP_REFERER'])
                 else:
-                    return HttpResponse("图片格式错误，请重新上传")
+                    return HttpResponse("图片格式错误，，请尝试重新上传或更换图片！")
             else:
-                return HttpResponse("图片未上传")
+                return HttpResponse("图片未上传！")
         else:
             AnnouncementRecord.objects.create(aid=id, reader=user)
             return redirect(request.META['HTTP_REFERER'])
 
 
 @csrf_exempt
-def show_upload(request, id, names):
+def show_upload(request, id, names=None):
     if request.method == "POST":
-        values = AnnouncementRecord.objects.filter(aid=id)
-        values = {"reader_upload": {values.get(reader=name).reader: values.get(reader=name).image
-                                    for name in values.values_list("reader", flat=True) if name in names},
-                  "media_url": MEDIA_URL}
-        return render(request, "show-upload.html", values)
+        if names is not None:
+            values = AnnouncementRecord.objects.filter(aid=id)
+            if len(values) != 0:
+                try:
+                    values = {"reader_upload": {values.get(reader=name).reader: values.get(reader=name).image
+                                                for name in values.values_list("reader", flat=True) if name in names},
+                              "media_url": MEDIA_URL}
+                    return render(request, "show-upload.html", values)
+                except:
+                    return HttpResponse("请求错误！请从公告阅读界面访问该页。")
+            else:
+                return HttpResponse("没有公告确认记录！")
+        else:
+            return HttpResponse("请求错误！请从公告阅读界面访问该页。")
+    else:
+        return HttpResponse("请求错误！请从公告阅读界面访问该页。")
 
 
 # scheduler = BackgroundScheduler()
