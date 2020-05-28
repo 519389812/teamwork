@@ -29,18 +29,26 @@
         <div class="container">
             <div class="row">
                 <div class="col-md-12 col-md-offset-0 centered">
-                    {% if is_read == False %}
-                        <form enctype="multipart/form-data" action="{% url "read_confirm" id announcement.require_upload %}" method="POST">
-                            {% csrf_token %}
-                            {% if announcement.require_upload == True %}
-                                <input class="form-control btn-yellow" type="file" name="img"/>
-                            {% else %}
-                                <input class="form-control btn-yellow" type="file" disabled="disabled" about="无需上传" name="img"/>
-                            {% endif %}
-                            <button class="btn btn-lg btn-red" type="submit">确认阅读</button>
-                        </form>
+                    {% if announcement.active == True %}
+                        {% if is_read == False %}
+                            <form enctype="multipart/form-data" action="{% url "read_confirm" id announcement.require_upload %}" method="POST">
+                                {% csrf_token %}
+                                {% if announcement.require_upload == True %}
+                                    <input class="form-control btn-yellow" type="file" name="img"/>
+                                {% else %}
+                                    <input class="form-control btn-yellow" type="file" disabled="disabled" about="无需上传" name="img"/>
+                                {% endif %}
+                                <button class="btn btn-lg btn-red" type="submit">确认阅读</button>
+                            </form>
+                        {% else %}
+                            <button class="btn btn-lg btn-green" type="submit" disabled="disabled">已确认</button>
+                        {% endif %}
                     {% else %}
-                        <button class="btn btn-lg btn-green" type="submit" disabled="disabled">已确认</button>
+                        {% if is_read == True %}
+                            <button class="btn btn-lg btn-green" type="submit" disabled="disabled">过期-已确认</button>
+                        {% else %}
+                            <button class="btn btn-lg btn-green" type="submit" disabled="disabled">过期-未确认</button>
+                        {% endif %}
                     {% endif %}
                 </div>
             </div>
