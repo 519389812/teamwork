@@ -1,19 +1,26 @@
 from django.contrib import admin
 from announcement.models import Announcement, AnnouncementRecord
 import datetime
+from io import BytesIO
+import pandas as pd
+from django.http import HttpResponse
+import numpy as np
 
 
 class AnnouncementAdmin(admin.ModelAdmin):
     list_display = ("id", "author", "title", "content", "get_to_group", "get_to_people", "require_upload",
                     "get_unread_count", "edit_datetime", "url_address", "active")
     list_display_links = ("id", "title",)
-    search_fields = ("author", "title", "content",)
-    filter_horizontal = ('to_group', 'to_people',)
     fields = ('title', 'content', 'to_group', 'to_people', 'require_upload', 'deadline', 'author', 'get_to_group',
               'get_to_people', 'get_read_names', 'get_unread_names', 'get_read_count', 'get_unread_count',
               'issue_datetime', 'edit_datetime', 'url_address', "active")  # 设置添加/修改详细信息时，哪些字段显示，在这里 remark 字段将不显示
     readonly_fields = ('author', 'get_to_group', 'get_to_people', 'get_read_names', 'get_unread_names',
                        'get_read_count', 'get_unread_count', 'issue_datetime', 'edit_datetime',)
+    actions = ["export_directly", ]
+    search_fields = ("author", "title", "content",)
+    date_hierarchy = 'issue_datetime'  # 详细时间分层筛选
+    list_filter = ('require_upload', 'active',)
+    filter_horizontal = ('to_group', 'to_people')  # 设置多对多字段的筛选器
 
     def get_to_group(self, obj):
         return ' '.join([i.name for i in obj.to_group.all()])
@@ -68,6 +75,25 @@ class AnnouncementAdmin(admin.ModelAdmin):
 
     get_unread_names.short_description = u'未读人员'
 
+    def export_directly(self, request, queryset):
+        outfile = BytesIO()
+        data = pd.DataFrame(queryset.values())
+        data = data.rename(columns={'title': '标题', 'content': '内容', 'require_upload': '需要上传',
+                                    'deadline': '截止时间', 'author': '作者', 'issue_datetime': '发布时间'})
+        data = data[["标题", "内容", "作者", "需要上传", "发布时间", "截止时间"]]
+        data['发布时间'] = (data['发布时间'] + datetime.timedelta(hours=8)).dt.strftime('%Y-%m-%d %H:%M:%S')
+        data['截止时间'] = (data['截止时间'] + datetime.timedelta(hours=8)).dt.strftime('%Y-%m-%d %H:%M:%S')
+        data = data.sort_values(by=["发布时间"], ascending=True)
+        data = data.fillna("")
+        filename = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment;filename="{}"'.format("Export_Directly " + filename + ".xlsx")
+        data.to_excel(outfile, index=False)
+        response.write(outfile.getvalue())
+        return response
+
+    export_directly.short_description = "导出"
+
     def save_model(self, request, obj, form, change):
         super().save_model(request, obj, form, change)
         user = request.user.full_name
@@ -80,8 +106,46 @@ class AnnouncementAdmin(admin.ModelAdmin):
 class AnnouncementRecordAdmin(admin.ModelAdmin):
     list_display = ("id", "aid", "reader", "read_datetime", "image", "read_status")
     list_display_links = ("id",)
-    search_fields = ("reader",)
     readonly_fields = ("aid", "reader", "read_datetime", "image", "read_status")
+    actions = ["export_directly", "export_pivot_by_count"]
+    search_fields = ("aid", "reader",)
+    date_hierarchy = 'read_datetime'  # 详细时间分层筛选
+    list_filter = ('read_status',)
+
+    def export_directly(self, request, queryset):
+        outfile = BytesIO()
+        data = pd.DataFrame(queryset.values())
+        data = data.rename(columns={"aid": '公告id', "reader": '阅读人', "read_datetime": '阅读时间'})
+        data = data[["公告id", "阅读人", "阅读时间"]]
+        data['阅读时间'] = (data['阅读时间'] + datetime.timedelta(hours=8)).dt.strftime('%Y-%m-%d %H:%M:%S')
+        data = data.sort_values(by=["公告id", "阅读时间"], ascending=True)
+        data = data.fillna("")
+        filename = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment;filename="{}"'.format("Export_Directly " + filename + ".xlsx")
+        data.to_excel(outfile, index=False)
+        response.write(outfile.getvalue())
+        return response
+
+    export_directly.short_description = "直接导出"
+
+    def export_pivot_by_count(self, request, queryset):
+        outfile = BytesIO()
+        data = pd.DataFrame(queryset.values())
+        data = data.rename(columns={"aid": '公告id', "reader": '阅读人'})
+        data = data[["公告id", "阅读人"]]
+        data["阅读次数"] = data["阅读人"]
+        data = data.fillna("")
+        data = pd.pivot_table(data, values=["阅读次数"], index=["阅读人"], aggfunc=np.count_nonzero)
+        filename = datetime.datetime.now().strftime("%Y-%m-%d %H:%M:%S")
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment;filename="{}"'.format(
+            "Export_Pivot_By_Count " + filename + ".xlsx")
+        data.to_excel(outfile)
+        response.write(outfile.getvalue())
+        return response
+
+    export_pivot_by_count.short_description = "导出阅读次数统计"
 
 
 admin.site.register(Announcement, AnnouncementAdmin)
