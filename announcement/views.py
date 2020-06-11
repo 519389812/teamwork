@@ -107,7 +107,7 @@ def read_confirm(request, id, require_upload):
                     try:
                         img_type = img_name.split(".")[-1]
                         img = Image.open(img)
-                        img = img.resize((200, 357))
+                        img = img.resize((392, 700))
                         img.save(os.path.join(settings.MEDIA_ROOT, image_path, (id + '_' + user + '.' + img_type)))
                     except:
                         return HttpResponse("图片格式错误，请尝试重新上传或更换图片！")
