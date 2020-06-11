@@ -16,7 +16,7 @@
             <div class="row centered">
                 <h1>{{ announcement.title }}</h1>
                 <p class="big mt">作者:{{ announcement.author }} 创建时间:{{ announcement.create_datetime }} 截止时间:{{ announcement.deadline }}</p>
-                <p>{{ announcement.content }} </p>
+                <p>{{ announcement.content|linebreaksbr }} </p>
             </div>
             <!--/row -->
         </div>
