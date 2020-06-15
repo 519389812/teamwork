@@ -27,4 +27,5 @@ urlpatterns = [
     re_path('^readconfirm/(\d+)/(.*)$', announcement_view.read_confirm, name='read_confirm'),
     re_path('^media/(?P<path>.*)$', serve, {'document_root': settings.MEDIA_ROOT}),
     re_path('^showupload/(\d+)/(.*)$', announcement_view.show_upload, name='show_upload'),
+    re_path('^feedbackconfirm/(\d+)$', announcement_view.feedback_confirm, name='feedback_confirm'),
 ]

@@ -1,5 +1,5 @@
 from django.contrib import admin
-from announcement.models import Announcement, AnnouncementRecord
+from announcement.models import Announcement, AnnouncementRecord, Feedback
 import datetime
 from io import BytesIO
 import pandas as pd
@@ -148,5 +148,32 @@ class AnnouncementRecordAdmin(admin.ModelAdmin):
     export_pivot_by_count.short_description = "导出阅读次数统计"
 
 
+class FeedbackAdmin(admin.ModelAdmin):
+    list_display = ("id", "aid", "sender", "sent_datetime", "comment", "reply_to")
+    list_display_links = ("id",)
+    readonly_fields = ("id", "aid", "sender", "sent_datetime", "comment", "reply_to")
+    search_fields = ("aid", "sender", "comment")
+    date_hierarchy = 'sent_datetime'  # 详细时间分层筛选
+    actions = ["export_directly"]
+
+    def export_directly(self, request, queryset):
+        outfile = BytesIO()
+        data = pd.DataFrame(queryset.values())
+        data = data.rename(columns={"aid": '公告id', "sender": '评论人', "sent_datetime": '评论时间', "comment": "评论"})
+        data = data[["公告id", "评论人", "评论时间", "评论"]]
+        data['评论时间'] = (data['评论时间'] + datetime.timedelta(hours=8)).dt.strftime('%Y-%m-%d %H:%M:%S')
+        data = data.sort_values(by=["公告id", "评论时间"], ascending=True)
+        data = data.fillna("")
+        filename = datetime.datetime.now().strftime("%Y-%m-%d_%H%M%S")
+        response = HttpResponse(content_type='application/vnd.ms-excel')
+        response['Content-Disposition'] = 'attachment;filename="{}"'.format("Export_Directly " + filename + ".xlsx")
+        data.to_excel(outfile, index=False)
+        response.write(outfile.getvalue())
+        return response
+
+    export_directly.short_description = "直接导出"
+
+
 admin.site.register(Announcement, AnnouncementAdmin)
 admin.site.register(AnnouncementRecord, AnnouncementRecordAdmin)
+admin.site.register(Feedback, FeedbackAdmin)

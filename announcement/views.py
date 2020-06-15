@@ -2,7 +2,7 @@ from django.shortcuts import render, redirect, reverse
 from user.models import User
 from django.contrib.auth.hashers import check_password
 import os
-from announcement.models import Announcement, AnnouncementRecord
+from announcement.models import Announcement, AnnouncementRecord, Feedback
 from django.http import HttpResponse
 from PIL import Image
 from announcement.models import image_path
@@ -49,6 +49,7 @@ def make_announcement(request, id):
     except:
         current_username = User.objects.get(username=request.session["login_user"]).full_name
     announcement = Announcement.objects.get(id=id)
+    feedback = Feedback.objects.filter(aid=id)
     to_group_obj = announcement.to_group.all()
     to_people_obj = announcement.to_people.all()
     to_people = [i.full_name for i in to_people_obj] if len(to_people_obj) != 0 else []
@@ -83,7 +84,8 @@ def make_announcement(request, id):
         unread_names = to_people
     to_people_length = (len(to_people))
     values = {'id': id, 'announcement': announcement, 'group_dict': group_dict, 'read_names': read_names,
-              'unread_names': unread_names, 'is_read': is_read, 'to_people_length': to_people_length}
+              'unread_names': unread_names, 'is_read': is_read, 'to_people_length': to_people_length,
+              'feedback': feedback}
     return render(request, 'announcement.html', values)
 
 
@@ -121,6 +123,20 @@ def read_confirm(request, id, require_upload):
         else:
             AnnouncementRecord.objects.create(aid=id, reader=user)
             return redirect(request.META['HTTP_REFERER'])
+
+
+@check_authority
+def feedback_confirm(request, id):
+    # 对应action中 <form action = "{% url 'feedback_confirm' id %}" method = "post"> 的 {% url 'feedback_confirm' id %} 方法，
+    # confirm指向urls.py中name=confirm的url
+    user = request.session.get("login_user", "")
+    user = User.objects.get(username=user).full_name
+    comment = request.POST.get("feedback")
+    if len(Feedback.objects.filter(aid=id, sender=user)) > 3:
+        return HttpResponse("您的评论次数过多，已经限制评论，请勿刷屏！")
+    else:
+        Feedback.objects.create(aid=id, sender=user, comment=comment)
+        return redirect(request.META['HTTP_REFERER'])
 
 
 @csrf_exempt

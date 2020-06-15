@@ -42,3 +42,19 @@ class AnnouncementRecord(models.Model):
 
     def __str__(self):
         return self.reader
+
+
+class Feedback(models.Model):
+    id = models.AutoField(primary_key=True)
+    aid = models.IntegerField(verbose_name="通知id")
+    sender = models.CharField(max_length=16, verbose_name="发送人")
+    sent_datetime = models.DateTimeField(auto_now=True, verbose_name="发送时间")
+    comment = models.TextField(max_length=100, verbose_name="内容")
+    reply_to = models.IntegerField(null=True, verbose_name="回复id")
+
+    class Meta:
+        verbose_name = "留言"
+        verbose_name_plural = "留言"
+
+    def __str__(self):
+        return self.sender

@@ -144,6 +144,55 @@
     </div>
     <!--/container -->
 
+    <!-- ********** GREY SECTION / DOWNLOAD CHAPTER ********** -->
+    <section id="free"></section>
+    <div id="g">
+        <div class="container">
+            <div class="row centered">
+                <div class="col-md-11">
+                    <h2>我要留言</h2>
+                    <p class="mb">有什么想说的吗？</p>
+                    <form role="form" action="{% url 'feedback_confirm' id %}" method="post">
+                        {% csrf_token %}
+                        <input type="text" name="feedback" class="subscribe-input"
+                               placeholder="请输入您的留言" data-rule="maxlen:100" required>
+                        <button class='btn btn-lg btn-download subscribe-submit' type="submit">提交</button>
+                    </form>
+                </div>
+            </div>
+            <!--/row -->
+        </div>
+        <!--/container -->
+    </div>
+    <!--/G -->
+
+    <!-- ********** WHITE SECTION / CHAPTERS LIST ********** -->
+    <div class="container">
+        <div class="row mtb">
+            <h2 class="centered mb">留言板</h2>
+            <div class="col-md-10 col-md-offset-0">
+                <table class='table'>
+                    {% if feedback|length == 0 %}
+                        <tr>
+                            <td class='head pull-right'>暂无留言</td>
+                        </tr>>
+                    {% else %}
+                        {% for object in feedback %}
+                            <tr>
+                                <td class='head pull-right'>{{ object.comment }}</td>
+                                <td class=' number'>{{ object.sent_datetime }}</td>
+                                <td class='td-last'>{{ object.sender }}</td>
+                            </tr>
+                        {% endfor %}
+                    {% endif %}
+                </table>
+            </div>
+            <!--/col-md-5-->
+        </div>
+        <!--/row -->
+    </div>
+    <!--/container -->
+
     {% include "script.html" %}
     {% if messages %}
         <script>
