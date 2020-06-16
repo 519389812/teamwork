@@ -109,6 +109,9 @@ def read_confirm(request, id, require_upload):
                     try:
                         img_type = img_name.split(".")[-1]
                         img = Image.open(img)
+                        x, y = img.size
+                        if x > y:
+                            img = img.rotate(90, expand=True)
                         img = img.resize((392, 700))
                         img.save(os.path.join(settings.MEDIA_ROOT, image_path, (id + '_' + user + '.' + img_type)))
                     except:
